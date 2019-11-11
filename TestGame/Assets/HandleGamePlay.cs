@@ -127,13 +127,14 @@ public class HandleGamePlay : MonoBehaviour
             }
         }
     }
-
+    private Vector2 _lastTouchPos;
     // Update is called once per frame
     void Update()
     {
         if (!_started)
         {
-            if (Input.GetKey(KeyCode.KeypadEnter))
+            
+            if (Input.GetKey(KeyCode.A) || Input.touchCount > 0)
             {
                 _started = true;
             }
@@ -143,7 +144,7 @@ public class HandleGamePlay : MonoBehaviour
         LevelDisplayGO.GetComponent<TextMesh>().text = "Level " + (_currentLevel + 1);
         if (_hasWin)
         {
-            if (Input.GetKey(KeyCode.KeypadEnter))
+            if (Input.GetKey(KeyCode.A) || Input.touchCount > 0)
             {
                 ++_currentLevel;
                 Reset(_currentLevel);
@@ -155,22 +156,61 @@ public class HandleGamePlay : MonoBehaviour
             _hasWin = true;
             TextNextLvl.SetActive(true);
         }
-        if (Input.GetKey(KeyCode.UpArrow))
+
+        KeyCode dirKeyCode = KeyCode.End;
+        if (Input.touchCount > 0)
         {
-            _lastDir = EDirecton.UP;
+            var diff = Input.touches[0].position - _lastTouchPos;
+            if (_lastTouchPos.magnitude > float.Epsilon)
+            {
+                float horizDot = Vector2.Dot(diff, Vector2.right);
+                float maxX = horizDot;
+                if (horizDot < 0.0f)
+                    maxX = Vector2.Dot(diff, Vector2.left);
+
+                float vertDot = Vector2.Dot(diff, Vector2.up);
+                float maxY = vertDot;
+                if (vertDot < 0.0f)
+                    maxY = Vector2.Dot(diff, Vector2.down);
+
+
+                if (maxX > maxY)
+                {
+                    if (horizDot < 0.0f)
+                        dirKeyCode = KeyCode.LeftArrow;
+                    else
+                        dirKeyCode = KeyCode.RightArrow;
+                }
+                else
+                {
+                    if (vertDot < 0.0f)
+                        dirKeyCode = KeyCode.DownArrow;
+                    else
+                        dirKeyCode = KeyCode.UpArrow;
+                }
+
+            }
+            _lastTouchPos = Input.touches[0].position;
         }
-        else if (Input.GetKey(KeyCode.DownArrow))
-        {
-            _lastDir = EDirecton.DOWN;
-        }
-        else if (Input.GetKey(KeyCode.LeftArrow))
-        {
-            _lastDir = EDirecton.LEFT;
-        }
-        else if (Input.GetKey(KeyCode.RightArrow))
-        {
-            _lastDir = EDirecton.RIGHT;
-        }
+        else
+            _lastTouchPos = Vector2.zero;
+        // To work on PC
+        //if (dirKeyCode==KeyCode.UpArrow)
+        //{
+        //    _lastDir = EDirecton.UP;
+        //}
+        //else if (dirKeyCode==KeyCode.DownArrow)
+        //{
+        //    _lastDir = EDirecton.DOWN;
+        //}
+        //else if (dirKeyCode==KeyCode.LeftArrow)
+        //{
+        //    _lastDir = EDirecton.LEFT;
+        //}
+        //else if (dirKeyCode==KeyCode.RightArrow)
+        //{
+        //    _lastDir = EDirecton.RIGHT;
+        //}
         Move(_lastDir);
     }
 }
